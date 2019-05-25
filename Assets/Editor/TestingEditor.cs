@@ -11,10 +11,16 @@ public class TestingEditor : Editor
         DrawDefaultInspector();
 
         Testing test = (Testing)target;
+
         if (GUILayout.Button("Build Object"))
         {
             test.ResetGenerator();
             test.UpdateTexture();
+        }
+
+        if (GUILayout.Button("Test Merge Sort"))
+        {
+            test.TestMergeSort();
         }
     }
 }
