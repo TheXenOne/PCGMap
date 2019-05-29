@@ -2,10 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
+using System;
+
 using Debug = UnityEngine.Debug;
+using Random = UnityEngine.Random;
 
 public class Testing : MonoBehaviour
 {
+    [System.Serializable]
+    public enum SortTestType
+    {
+        INT,
+        VECTOR2
+    }
+
     public int seed = 0;
     [ReadOnly]
     public int numPoints;
@@ -15,6 +25,7 @@ public class Testing : MonoBehaviour
     public float scale = 1f;
     public Vector2 offset;
     public bool perlin = false;
+    public SortTestType sortTestType;
     public uint sortSize = 16;
 
     private System.Random randomGenerator;
@@ -81,94 +92,94 @@ public class Testing : MonoBehaviour
 
     public void TestMergeSort()
     {
-        int[] sortedArray = new int[sortSize];
-        
-        for (int i = 0; i < sortSize; i++)
-        {
-            sortedArray[i] = Random.Range(0, (int)sortSize * 2);
-        }
-
         Stopwatch stopWatch = new Stopwatch();
-        stopWatch.Start();
 
-        MergeSort(sortedArray, 0, sortedArray.Length - 1);
-
-        stopWatch.Stop();
-        // Get the elapsed time as a TimeSpan value.
-        System.TimeSpan ts = stopWatch.Elapsed;
-
-        // Format and display the TimeSpan value.
-        string elapsedTime = (ts.TotalMilliseconds / 1000).ToString();
-
-        Debug.Log("Run time: " + elapsedTime + " seconds.");
-        
-        int displayLength = (int)sortSize < 64 ? (int)sortSize : 64;
-        if (displayLength > 63)
+        switch (sortTestType)
         {
-            Debug.Log("Displaying first 64 integers only.");
-        }
+            case SortTestType.INT:
+                {
+                    Mathf.Clamp(sortSize, 0, Int32.MaxValue / 2);
+                    int[] sortedArray = new int[sortSize];
+                    for (int i = 0; i < sortSize; i++)
+                    {
+                        sortedArray[i] = Random.Range(0, (int)sortSize * 2);
+                    }
 
-        string arrayString = "Sorted array: ";
-        for (int i = 0; i < displayLength; i++)
-        {
-            arrayString += sortedArray[i].ToString();
-            arrayString += " ";
-        }
+                    stopWatch.Start();
 
-        Debug.Log(arrayString);
-    }
+                    bool success = Sort<int, int>.MergeSort(sortedArray);
 
-    void MergeSort(int[] array, int left, int right)
-    {
-        if (left < right)
-        {
-            int middle = left + (right - left) / 2;
-            MergeSort(array, left, middle);
-            MergeSort(array, middle + 1, right);
-            Merge(array, left, middle, right);
-        }
-    }
+                    stopWatch.Stop();
 
-    void Merge(int[] array, int left, int middle, int right)
-    {
-        int[] sortedArray = new int[right - left + 1];
-        int currentIndex = 0;
-        int indexLeft = left;
-        int indexRight = middle + 1;
+                    if (success)
+                    {
+                        // Get the elapsed time as a TimeSpan value.
+                        System.TimeSpan ts = stopWatch.Elapsed;
 
-        while (indexLeft < middle + 1 && indexRight < right + 1)
-        {
-            if (array[indexLeft] < array[indexRight])
-            {
-                sortedArray[currentIndex++] = array[indexLeft++];
-            }
-            else if (array[indexRight] < array[indexLeft])
-            {
-                sortedArray[currentIndex++] = array[indexRight++];
-            }
-            else if (array[indexRight] == array[indexLeft])
-            {
-                sortedArray[currentIndex++] = array[indexLeft++];
-            }
-            else
-            {
-                //error
-            }
-        }
+                        // Format and display the TimeSpan value.
+                        string elapsedTime = (ts.TotalMilliseconds / 1000).ToString();
 
-        for (int i = indexLeft; i < middle + 1; ++i)
-        {
-            sortedArray[currentIndex++] = array[i];
-        }
+                        Debug.Log("Run time: " + elapsedTime + " seconds.");
 
-        for (int i = indexRight; i < right + 1; ++i)
-        {
-            sortedArray[currentIndex++] = array[i];
-        }
+                        int displayLength = (int)sortSize < 64 ? (int)sortSize : 64;
+                        if (displayLength > 63)
+                        {
+                            Debug.Log("Displaying first 64 values only.");
+                        }
 
-        for (int i = 0; i < right - left + 1; ++i)
-        {
-            array[left + i] = sortedArray[i];
+                        string arrayString = "Sorted array: ";
+                        for (int i = 0; i < displayLength; i++)
+                        {
+                            arrayString += sortedArray[i].ToString();
+                            arrayString += " ";
+                        }
+
+                        Debug.Log(arrayString);
+                    }
+                }
+                break;
+            case SortTestType.VECTOR2:
+                {
+                    Mathf.Clamp(sortSize, 0, float.MaxValue / 2f);
+                    Vector2[] sortedArray = new Vector2[sortSize];
+                    Vector2 temp = new Vector2();
+                    for (int i = 0; i < sortSize; i++)
+                    {
+                        temp.x = Random.Range(0, (int)sortSize * 2);
+                        temp.y = Random.Range(0, (int)sortSize * 2);
+                        sortedArray[i] = temp;
+                    }
+                    Func<Vector2[], int, float> accessor = (Vector2[] array, int index) => array[index].x;
+
+                    stopWatch.Start();
+
+                    Sort<Vector2, float>.MergeSort(sortedArray, accessor);
+
+                    stopWatch.Stop();
+                    // Get the elapsed time as a TimeSpan value.
+                    System.TimeSpan ts = stopWatch.Elapsed;
+
+                    // Format and display the TimeSpan value.
+                    string elapsedTime = (ts.TotalMilliseconds / 1000).ToString();
+
+                    Debug.Log("Run time: " + elapsedTime + " seconds.");
+
+                    int displayLength = (int)sortSize < 64 ? (int)sortSize : 64;
+                    if (displayLength > 63)
+                    {
+                        Debug.Log("Displaying first 64 values only.");
+                    }
+
+                    string arrayString = "Sorted array: ";
+                    for (int i = 0; i < displayLength; i++)
+                    {
+                        arrayString += sortedArray[i].ToString();
+                        arrayString += " ";
+                    }
+
+                    Debug.Log(arrayString);
+                }
+                break;
         }
     }
 
